@@ -7,3 +7,7 @@ crash.log
 # Keep the lock file
 !.terraform.lock.hcl
 !**/.terraform.lock.hcl
+
+# Lambda build artifacts
+build/
+*.zip
