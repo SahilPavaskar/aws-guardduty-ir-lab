@@ -102,6 +102,8 @@ resource "aws_lambda_function" "guardduty_ir" {
   environment {
     variables = {
       SNS_TOPIC_ARN = aws_sns_topic.incident_alerts.arn
+      REMEDIATE_INSTANCES  = "true"
+      SEVERITY_THRESHOLD   = "4"
     }
   }
 }
