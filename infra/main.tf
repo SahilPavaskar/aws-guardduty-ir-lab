@@ -109,3 +109,31 @@ resource "aws_lambda_function" "guardduty_ir" {
 output "lambda_function_name" {
   value = aws_lambda_function.guardduty_ir.function_name
 }
+
+resource "aws_cloudwatch_event_rule" "guardduty_findings" {
+  name        = "guardduty-findings-to-lambda"
+  description = "Send GuardDuty findings to the IR Lambda"
+
+  event_pattern = jsonencode({
+    source = ["aws.guardduty"]
+    detail-type = ["GuardDuty Finding"]
+  })
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.guardduty_findings.name
+  target_id = "GuardDutyIRLambda"
+  arn       = aws_lambda_function.guardduty_ir.arn
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.guardduty_ir.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.guardduty_findings.arn
+}
+
+output "eventbridge_rule_name" {
+  value = aws_cloudwatch_event_rule.guardduty_findings.name
+}
