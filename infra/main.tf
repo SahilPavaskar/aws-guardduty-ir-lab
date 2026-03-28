@@ -89,3 +89,23 @@ resource "aws_iam_role_policy" "lambda_custom_policy" {
 output "lambda_role_arn" {
   value = aws_iam_role.lambda_exec_role.arn
 }
+
+resource "aws_lambda_function" "guardduty_ir" {
+  function_name = "guardduty-ir-handler"
+  role          = aws_iam_role.lambda_exec_role.arn
+  handler       = "handler.lambda_handler"
+  runtime       = "python3.13"
+
+  filename         = "../build/guardduty_ir_lambda.zip"
+  source_code_hash = filebase64sha256("../build/guardduty_ir_lambda.zip")
+
+  environment {
+    variables = {
+      SNS_TOPIC_ARN = aws_sns_topic.incident_alerts.arn
+    }
+  }
+}
+
+output "lambda_function_name" {
+  value = aws_lambda_function.guardduty_ir.function_name
+}
