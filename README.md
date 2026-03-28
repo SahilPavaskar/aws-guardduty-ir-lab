@@ -33,17 +33,6 @@ This lab demonstrates that pattern in a focused and explainable way using core A
 
 ---
 
-## Architecture
+## Architecture Diagram
 
-```text
-GuardDuty
-   |
-   v
-EventBridge Rule
-   |
-   v
-Lambda Responder
-   |          \
-   |           \
-   v            v
-SNS Alert       EC2 Stop Action
+![Architecture Diagram](./docs/images/architecture-diagram.png)
