@@ -26,3 +26,12 @@ resource "aws_sns_topic_subscription" "email_alerts" {
 output "sns_topic_arn" {
   value = aws_sns_topic.incident_alerts.arn
 }
+
+resource "aws_guardduty_detector" "main" {
+  enable                       = true
+  finding_publishing_frequency = "FIFTEEN_MINUTES"
+}
+
+output "guardduty_detector_id" {
+  value = aws_guardduty_detector.main.id
+}
