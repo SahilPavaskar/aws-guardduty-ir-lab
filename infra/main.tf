@@ -137,3 +137,55 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 output "eventbridge_rule_name" {
   value = aws_cloudwatch_event_rule.guardduty_findings.name
 }
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default_in_vpc" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+data "aws_ssm_parameter" "al2023_ami" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+}
+
+resource "aws_security_group" "lab_instance_sg" {
+  name        = "guardduty-ir-lab-ec2-sg"
+  description = "Security group for GuardDuty IR lab test instance"
+  vpc_id      = data.aws_vpc.default.id
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name    = "guardduty-ir-lab-ec2-sg"
+    Project = "aws-guardduty-ir-lab"
+  }
+}
+
+resource "aws_instance" "lab_target" {
+  ami                         = data.aws_ssm_parameter.al2023_ami.value
+  instance_type               = "t3.micro"
+  subnet_id                   = data.aws_subnets.default_in_vpc.ids[0]
+  vpc_security_group_ids      = [aws_security_group.lab_instance_sg.id]
+  associate_public_ip_address = true
+
+  tags = {
+    Name        = "guardduty-ir-lab-target"
+    Project     = "aws-guardduty-ir-lab"
+    Environment = "lab"
+    Purpose     = "incident-response-test-target"
+  }
+}
+
+output "lab_instance_id" {
+  value = aws_instance.lab_target.id
+}
